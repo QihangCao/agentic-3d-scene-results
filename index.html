@@ -44,6 +44,34 @@
       </div>
     </section>
 
+    <section class="task-definition section-shell" aria-label="两项实验任务">
+      <div class="section-heading compact">
+        <p class="eyebrow">TWO DIFFERENT QUESTIONS</p>
+      </div>
+      <div class="definition-grid">
+        <article class="definition-card image-accent">
+          <span class="definition-number">01</span>
+          <div>
+            <h3>单张照片 → 场景复原</h3>
+            <p>输入提供明确视觉证据。核心看输入视角是否对齐、结构与物体是否对应，以及未见区域是否只是合理猜测。</p>
+            <div class="mini-flow" aria-label="单图复原流程">
+              <span>RGB 照片</span><i>→</i><span>分阶段建模</span><i>→</i><span>独立重渲染</span><i>→</i><span>相似度评测</span>
+            </div>
+          </div>
+        </article>
+        <article class="definition-card text-accent">
+          <span class="definition-number">02</span>
+          <div>
+            <h3>文本 brief → 完整场景</h3>
+            <p>没有唯一参考答案。核心看空间规划、细节密度、材质灯光、功能合理性、可编辑性，以及达到质量所需的成本。</p>
+            <div class="mini-flow" aria-label="文本生成场景流程">
+              <span>文字 brief</span><i>→</i><span>构建与渲染</span><i>→</i><span>多路盲评</span><i>→</i><span>定向修正</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
     <section id="task-image" class="task-section task-image">
       <div class="section-shell">
         <div class="section-heading split-heading">
@@ -434,8 +462,8 @@
         </article>
         <article>
           <span>04</span>
-          <h3>迭代轮数不等于等量计算</h3>
-          <p>街景约 2.1 小时达到 85.5，后续约 1.8 小时只增加 1.4 分。比较模型时应同时记录 wall time、token、GPU 与最终资产，而不只看 cycle 数。</p>
+          <h3>评测应分轨，而不是合并总榜</h3>
+          <p>单图任务需要注册视角和结构指标；文本任务需要覆盖度、功能、可编辑性与成本。二者共享 harness，但目标函数不同。</p>
         </article>
       </div>
       <div class="detail-links">
@@ -460,80 +488,71 @@
       <p class="eyebrow">RELATED PUBLIC BENCHMARKS</p>
       <h2 id="benchmarks-title">现有 Benchmark 与数据入口</h2>
       <p class="benchmark-intro">按输入接口和场景规模整理。优先直链官方项目页、代码与数据；标注 OBJECT-LEVEL 的项目可复用 harness 或指标，但不能直接代表完整房间 / 世界生成能力。</p>
-
-      <div class="benchmark-track">
-        <header class="benchmark-track-heading">
-          <span>TRACK 01</span>
-          <h3>单图 / Agentic inverse graphics</h3>
-        </header>
-        <div class="benchmark-grid">
-          <article class="benchmark-card">
-            <div class="benchmark-meta"><span>IMAGE → 3D CODE</span><small>OBJECT-LEVEL</small></div>
-            <h4>3DHarnessBench</h4>
-            <p>100 个目标、四种信息权限：单图、四视图、主动选视角和完整 3D 查询。直接评测 VLM agent 恢复 Blender Python 的能力，并公开轨迹、GLB 与几何指标。</p>
-            <div class="benchmark-links">
-              <a href="https://llada60.github.io/3DHarnessBench/" rel="noreferrer">Project ↗</a>
-              <a href="https://github.com/llada60/3DHarnessBench" rel="noreferrer">Code ↗</a>
-              <a href="https://huggingface.co/datasets/lingada/3DHarnessBench" rel="noreferrer">Data ↗</a>
-            </div>
-          </article>
-          <article class="benchmark-card">
-            <div class="benchmark-meta"><span>INTERACTIVE BLENDER</span><small>SCENE EDITING</small></div>
-            <h4>BlenderBench / VIGA</h4>
-            <p>闭环 write → render → inspect → revise benchmark，覆盖相机调整、固定视角编辑和探索式组合编辑。适合验证 agent 是否真的利用视觉反馈迭代。</p>
-            <div class="benchmark-links">
-              <a href="https://fugtemypt123.github.io/VIGA-website/" rel="noreferrer">Project ↗</a>
-              <a href="https://github.com/Fugtemypt123/VIGA" rel="noreferrer">Code ↗</a>
-              <a href="https://huggingface.co/datasets/DietCoke4671/BlenderBench" rel="noreferrer">Data ↗</a>
-            </div>
-          </article>
-          <article class="benchmark-card">
-            <div class="benchmark-meta"><span>REAL-SCENE GT</span><small>INDOOR</small></div>
-            <h4>ScanNet++</h4>
-            <p>1000+ 个真实室内场景，包含高精度激光扫描、配准的 33MP DSLR 图像与移动端 RGB-D。适合建立带真实几何和 held-out 视角的复原评测轨。</p>
-            <div class="benchmark-links">
-              <a href="https://scannetpp.mlsg.cit.tum.de/scannetpp/" rel="noreferrer">Dataset &amp; Benchmarks ↗</a>
-              <a href="https://arxiv.org/abs/2308.11417" rel="noreferrer">Paper ↗</a>
-            </div>
-          </article>
-        </div>
-      </div>
-
-      <div class="benchmark-track">
-        <header class="benchmark-track-heading text-track">
-          <span>TRACK 02</span>
-          <h3>文本 → 可编辑场景 / 动态世界</h3>
-        </header>
-        <div class="benchmark-grid">
-          <article class="benchmark-card">
-            <div class="benchmark-meta"><span>TEXT → INDOOR SCENE</span><small>SCENE-LEVEL</small></div>
-            <h4>SceneEval</h4>
-            <p>SceneEval-500 为文本条件室内场景提供语义与物理评测：物体数量/属性/关系、支撑与可达性，以及碰撞、导航、越界和开口净空。</p>
-            <div class="benchmark-links">
-              <a href="https://3dlg-hcvc.github.io/SceneEval/" rel="noreferrer">Project ↗</a>
-              <a href="https://github.com/3dlg-hcvc/SceneEval" rel="noreferrer">Code ↗</a>
-              <a href="https://github.com/3dlg-hcvc/SceneEval/releases" rel="noreferrer">Data ↗</a>
-            </div>
-          </article>
-          <article class="benchmark-card">
-            <div class="benchmark-meta"><span>TEXT / IMAGE → CODE</span><small>OBJECT-LEVEL</small></div>
-            <h4>3DCodeBench</h4>
-            <p>212 类程序化对象，覆盖 text-to-3D、image-to-3D、multi-turn 与完整 coding-agent 设置；同时报告可执行率、多视图相似度、3D 距离、时间、token 和成本。</p>
-            <div class="benchmark-links">
-              <a href="https://www.3dcodebench.com/" rel="noreferrer">Project ↗</a>
-              <a href="https://github.com/gaoypeng/3dcodebench" rel="noreferrer">Code ↗</a>
-              <a href="https://huggingface.co/datasets/YipengGao/3DCode" rel="noreferrer">Data ↗</a>
-            </div>
-          </article>
-          <article class="benchmark-card">
-            <div class="benchmark-meta"><span>TEXT → DYNAMIC 4D</span><small>SCENE-LEVEL</small></div>
-            <h4>4DBuildBench / SimWorlds</h4>
-            <p>面向文本生成动态 Blender 场景，评价视觉质量与物理一致性，涵盖刚体、流体、粒子和关节机构等随时间变化的场景行为。</p>
-            <div class="benchmark-links">
-              <a href="https://arxiv.org/abs/2607.01766" rel="noreferrer">Paper &amp; Benchmark ↗</a>
-            </div>
-          </article>
-        </div>
+      <div class="benchmark-table-wrap" tabindex="0" role="region" aria-label="公开 3D 生成 Benchmark 对照表">
+        <table class="benchmark-table">
+          <caption>公开 Benchmark 的输入、规模、指标及与本实验的对应关系</caption>
+          <thead>
+            <tr>
+              <th scope="col">Benchmark</th>
+              <th scope="col">输入与规模</th>
+              <th scope="col">主要评测</th>
+              <th scope="col">与本实验的关系</th>
+              <th scope="col">官方资源</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="benchmark-group-row image-group">
+              <th colspan="5" scope="rowgroup"><span>TRACK 01</span> 单图 / Agentic inverse graphics</th>
+            </tr>
+            <tr>
+              <th scope="row"><strong>3DHarnessBench</strong><small>OBJECT-LEVEL</small></th>
+              <td>100 个目标；单图、四视图、主动选视角、完整 3D 查询</td>
+              <td>SigLIP-2、DINO、Chamfer、Uni3D、拓扑、延迟与成本</td>
+              <td>Harness 权限对比最接近；目标仍是单对象，不是完整房间</td>
+              <td><div class="table-links"><a href="https://llada60.github.io/3DHarnessBench/" rel="noreferrer">Project</a><a href="https://github.com/llada60/3DHarnessBench" rel="noreferrer">Code</a><a href="https://huggingface.co/datasets/lingada/3DHarnessBench" rel="noreferrer">Data</a></div></td>
+            </tr>
+            <tr>
+              <th scope="row"><strong>BlenderBench / VIGA</strong><small>SCENE EDITING</small></th>
+              <td>目标图 + 初始 Blender 场景；相机、固定视角与探索式编辑</td>
+              <td>Photometric Loss、VLM Score、多步任务完成度</td>
+              <td>闭环 render-inspect-revise 最接近；不是从零完整场景生成</td>
+              <td><div class="table-links"><a href="https://fugtemypt123.github.io/VIGA-website/" rel="noreferrer">Project</a><a href="https://github.com/Fugtemypt123/VIGA" rel="noreferrer">Code</a><a href="https://huggingface.co/datasets/DietCoke4671/BlenderBench" rel="noreferrer">Data</a></div></td>
+            </tr>
+            <tr>
+              <th scope="row"><strong>ScanNet++</strong><small>REAL-SCENE GT</small></th>
+              <td>1000+ 真实室内场景；激光扫描、33MP DSLR、移动端 RGB-D</td>
+              <td>Novel-view synthesis、3D 语义与实例分割</td>
+              <td>可构造真实几何 + held-out 视角的复原轨；不是现成 agent harness</td>
+              <td><div class="table-links"><a href="https://scannetpp.mlsg.cit.tum.de/scannetpp/" rel="noreferrer">Dataset</a><a href="https://arxiv.org/abs/2308.11417" rel="noreferrer">Paper</a></div></td>
+            </tr>
+          </tbody>
+          <tbody>
+            <tr class="benchmark-group-row text-group">
+              <th colspan="5" scope="rowgroup"><span>TRACK 02</span> 文本 → 可编辑场景 / 动态世界</th>
+            </tr>
+            <tr>
+              <th scope="row"><strong>SceneEval</strong><small>SCENE-LEVEL</small></th>
+              <td>SceneEval-500；文本条件室内场景</td>
+              <td>数量、属性、关系、支撑、可达性、碰撞、导航、越界与净空</td>
+              <td>当前最适合直接接入文本室内场景的语义 / 物理 evaluator</td>
+              <td><div class="table-links"><a href="https://3dlg-hcvc.github.io/SceneEval/" rel="noreferrer">Project</a><a href="https://github.com/3dlg-hcvc/SceneEval" rel="noreferrer">Code</a><a href="https://github.com/3dlg-hcvc/SceneEval/releases" rel="noreferrer">Data</a></div></td>
+            </tr>
+            <tr>
+              <th scope="row"><strong>3DCodeBench</strong><small>OBJECT-LEVEL</small></th>
+              <td>212 类程序化对象；文本 / 图像、single-shot、multi-turn、coding agent</td>
+              <td>可执行率、多视图相似度、3D 距离、Elo、时间、token 与成本</td>
+              <td>可复用执行、重渲染和成本协议；场景尺度仍需扩展</td>
+              <td><div class="table-links"><a href="https://www.3dcodebench.com/" rel="noreferrer">Project</a><a href="https://github.com/gaoypeng/3dcodebench" rel="noreferrer">Code</a><a href="https://huggingface.co/datasets/YipengGao/3DCode" rel="noreferrer">Data</a></div></td>
+            </tr>
+            <tr>
+              <th scope="row"><strong>4DBuildBench / SimWorlds</strong><small>SCENE-LEVEL</small></th>
+              <td>文本 → 动态 4D Blender 场景</td>
+              <td>视觉质量、物理一致性与运行时行为</td>
+              <td>把静态 text-to-world 扩展到刚体、流体、粒子和关节机构</td>
+              <td><div class="table-links"><a href="https://arxiv.org/abs/2607.01766" rel="noreferrer">Paper</a></div></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </section>
   </main>
