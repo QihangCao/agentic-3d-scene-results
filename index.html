@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Agentic 3D scene generation：单图场景复原与文本生成完整场景的实验结果。">
+  <title>Agentic 3D Scene Generation — Results</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="回到页面顶部">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span>AGENTIC 3D / EVAL</span>
+    </a>
+    <nav aria-label="主要章节">
+      <a href="#task-image">01 单图复原</a>
+      <a href="#task-text">02 文本生成</a>
+      <a href="#takeaways">结论</a>
+    </nav>
+    <span class="header-date">SEP 2026</span>
+  </header>
+
+  <main id="top">
+    <section class="hero section-shell">
+      <div class="hero-copy">
+        <p class="eyebrow">CODE → BLENDER → EDITABLE 3D SCENE</p>
+        <h1>从一张图或一段文本，<br>生成一个可进入的 3D 世界。</h1>
+        <p class="hero-lede">
+          两项任务、六个场景。这里分别回答两个问题：模型能否复原照片里看得到的空间，
+          以及能否仅凭文字从零构建具有完整尺度、材质、灯光与漫游路径的场景。
+        </p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#task-image">查看单图复原</a>
+          <a class="button" href="#task-text">查看文本生成</a>
+        </div>
+      </div>
+      <div class="hero-visual" aria-label="六个实验场景拼图">
+        <img class="hero-main" src="assets/text-task/street/01_hero_morrow_street.webp" alt="Morrow Street 街景主视图">
+        <img class="hero-inset hero-inset-top" src="assets/image-task/scene-a-gpt6.webp" alt="单图复原的客厅场景">
+        <img class="hero-inset hero-inset-bottom" src="assets/text-task/cedar/03_exterior_aerial.webp" alt="Cedar Court 合院住宅鸟瞰图">
+        <span class="hero-index">06 SCENES</span>
+      </div>
+    </section>
+
+    <section class="task-definition section-shell" aria-labelledby="definition-title">
+      <div class="section-heading compact">
+        <p class="eyebrow">TWO DIFFERENT QUESTIONS</p>
+        <h2 id="definition-title">两个任务不能混成一个分数</h2>
+      </div>
+      <div class="definition-grid">
+        <article class="definition-card image-accent">
+          <span class="definition-number">01</span>
+          <div>
+            <h3>单张照片 → 场景复原</h3>
+            <p>输入提供明确视觉证据。核心看输入视角是否对齐、结构与物体是否对应，以及未见区域是否只是合理猜测。</p>
+            <div class="mini-flow" aria-label="单图复原流程">
+              <span>RGB 照片</span><i>→</i><span>分阶段建模</span><i>→</i><span>独立重渲染</span><i>→</i><span>相似度评测</span>
+            </div>
+          </div>
+        </article>
+        <article class="definition-card text-accent">
+          <span class="definition-number">02</span>
+          <div>
+            <h3>文本 brief → 完整场景</h3>
+            <p>没有唯一参考答案。核心看空间规划、细节密度、材质灯光、功能合理性、可编辑性，以及达到质量所需的成本。</p>
+            <div class="mini-flow" aria-label="文本生成场景流程">
+              <span>文字 brief</span><i>→</i><span>构建与渲染</span><i>→</i><span>多路盲评</span><i>→</i><span>定向修正</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="task-image" class="task-section task-image">
+      <div class="section-shell">
+        <div class="section-heading split-heading">
+          <div>
+            <p class="eyebrow">TASK 01 · SINGLE-IMAGE RECONSTRUCTION</p>
+            <h2>单图生成可编辑场景：<br>输入视角明显提升，背面仍是推断</h2>
+          </div>
+          <p class="section-intro">
+            三张真实室内照片分别交给同一套冻结 harness。模型只能看到一张输入图，
+            通过分析、blockout、相机、几何、材质和最终验证阶段生成 Blender 与 GLB。
+            下方展示独立 Blender 进程的重渲染，而非 agent 自报结果。
+          </p>
+        </div>
+
+        <div class="stat-grid four-stats" aria-label="单图复原结果摘要">
+          <div class="stat"><strong>+74%</strong><span>宏平均 composite<br>0.297 → 0.516</span></div>
+          <div class="stat"><strong>9 / 9</strong><span>输入视角盲评票<br>全部选择 GPT-6</span></div>
+          <div class="stat"><strong>70 min</strong><span>三场景并发 makespan<br>单场景 63–70 分钟</span></div>
+          <div class="stat"><strong>95.6M</strong><span>输入 token<br>其中 96.2% 命中缓存</span></div>
+        </div>
+
+        <div class="protocol-band" aria-label="评测协议">
+          <span>固定输入与 prompt</span>
+          <span>相同工具与硬件</span>
+          <span>5 个构建阶段</span>
+          <span>独立重渲染</span>
+          <span>结构与反作弊审计</span>
+          <span>三路盲评</span>
+        </div>
+
+        <article class="recon-case" id="scene-a">
+          <header class="case-header">
+            <div>
+              <span class="case-index">A</span>
+              <div>
+                <p class="case-kicker">MIP-NERF ROOM · LIVING ROOM</p>
+                <h3>遮挡密集的真实客厅</h3>
+              </div>
+            </div>
+            <div class="metric-delta">
+              <span>Composite</span><strong>0.123 → 0.338</strong><em>+174%</em>
+            </div>
+          </header>
+          <div class="compare-grid">
+            <figure>
+              <button class="image-button" data-lightbox="assets/image-task/scene-a-reference.webp" data-caption="Scene A · 输入照片">
+                <img src="assets/image-task/scene-a-reference.webp" alt="Scene A 输入照片：带电视、扶手椅和茶几的客厅">
+              </button>
+              <figcaption><span>INPUT</span>唯一视觉证据</figcaption>
+            </figure>
+            <figure>
+              <button class="image-button" data-lightbox="assets/image-task/scene-a-gpt56.webp" data-caption="Scene A · GPT-5.6 baseline">
+                <img src="assets/image-task/scene-a-gpt56.webp" alt="Scene A GPT-5.6 基线复原">
+              </button>
+              <figcaption><span>GPT-5.6</span>SSIM 0.200 · Edge 0.030</figcaption>
+            </figure>
+            <figure class="result-figure">
+              <button class="image-button" data-lightbox="assets/image-task/scene-a-gpt6.webp" data-caption="Scene A · GPT-6 output">
+                <img src="assets/image-task/scene-a-gpt6.webp" alt="Scene A GPT-6 复原结果">
+              </button>
+              <figcaption><span>GPT-6</span>SSIM 0.378 · Edge 0.289</figcaption>
+            </figure>
+          </div>
+          <p class="case-note">主要增益来自正确的蓝绿色扶手椅、电视/音响关系、茶几器皿和抱枕；相机与大物体覆盖更接近输入。隐藏视角盲评为 1:2，是三例中唯一未胜出的场景。</p>
+        </article>
+
+        <article class="recon-case" id="scene-b">
+          <header class="case-header">
+            <div>
+              <span class="case-index">B</span>
+              <div>
+                <p class="case-kicker">DEEP BLENDING · PLAYROOM</p>
+                <h3>低纹理墙面与密集小物体</h3>
+              </div>
+            </div>
+            <div class="metric-delta">
+              <span>Composite</span><strong>0.384 → 0.621</strong><em>+62%</em>
+            </div>
+          </header>
+          <div class="compare-grid">
+            <figure>
+              <button class="image-button" data-lightbox="assets/image-task/scene-b-reference.webp" data-caption="Scene B · 输入照片">
+                <img loading="lazy" src="assets/image-task/scene-b-reference.webp" alt="Scene B 输入照片：儿童游戏房">
+              </button>
+              <figcaption><span>INPUT</span>唯一视觉证据</figcaption>
+            </figure>
+            <figure>
+              <button class="image-button" data-lightbox="assets/image-task/scene-b-gpt56.webp" data-caption="Scene B · GPT-5.6 baseline">
+                <img loading="lazy" src="assets/image-task/scene-b-gpt56.webp" alt="Scene B GPT-5.6 基线复原">
+              </button>
+              <figcaption><span>GPT-5.6</span>SSIM 0.535 · Edge 0.200</figcaption>
+            </figure>
+            <figure class="result-figure">
+              <button class="image-button" data-lightbox="assets/image-task/scene-b-gpt6.webp" data-caption="Scene B · GPT-6 output">
+                <img loading="lazy" src="assets/image-task/scene-b-gpt6.webp" alt="Scene B GPT-6 复原结果">
+              </button>
+              <figcaption><span>GPT-6</span>SSIM 0.692 · Edge 0.535</figcaption>
+            </figure>
+          </div>
+          <p class="case-note">墙体开口、书架、电视和贴纸布局保持得最好，获得三例最高 composite。输入视角与隐藏视角盲评均为 3:0；但反向区域依然比真实房间更空。</p>
+        </article>
+
+        <article class="recon-case" id="scene-c">
+          <header class="case-header">
+            <div>
+              <span class="case-index">C</span>
+              <div>
+                <p class="case-kicker">EYEFULTOWER · OPEN APARTMENT</p>
+                <h3>狭长空间与近景遮挡</h3>
+              </div>
+            </div>
+            <div class="metric-delta">
+              <span>Composite</span><strong>0.382 → 0.588</strong><em>+54%</em>
+            </div>
+          </header>
+          <div class="compare-grid portrait-case">
+            <figure>
+              <button class="image-button" data-lightbox="assets/image-task/scene-c-reference.webp" data-caption="Scene C · 输入照片">
+                <img loading="lazy" src="assets/image-task/scene-c-reference.webp" alt="Scene C 输入照片：狭长开放式公寓">
+              </button>
+              <figcaption><span>INPUT</span>唯一视觉证据</figcaption>
+            </figure>
+            <figure>
+              <button class="image-button" data-lightbox="assets/image-task/scene-c-gpt56.webp" data-caption="Scene C · GPT-5.6 baseline">
+                <img loading="lazy" src="assets/image-task/scene-c-gpt56.webp" alt="Scene C GPT-5.6 基线复原">
+              </button>
+              <figcaption><span>GPT-5.6</span>SSIM 0.534 · Edge 0.197</figcaption>
+            </figure>
+            <figure class="result-figure">
+              <button class="image-button" data-lightbox="assets/image-task/scene-c-gpt6.webp" data-caption="Scene C · GPT-6 output">
+                <img loading="lazy" src="assets/image-task/scene-c-gpt6.webp" alt="Scene C GPT-6 复原结果">
+              </button>
+              <figcaption><span>GPT-6</span>SSIM 0.677 · Edge 0.479</figcaption>
+            </figure>
+          </div>
+          <p class="case-note">视场角、吊灯、近景台面与远端工作区关系明显改善；近景电器也被补齐。亮度误差高于基线，说明提升并非单纯通过曝光匹配取得。</p>
+        </article>
+
+        <div class="evidence-grid">
+          <article class="evidence-panel warning-panel">
+            <div class="panel-copy">
+              <p class="eyebrow">THE IMPORTANT FAILURE MODE</p>
+              <h3>输入视角复原，不等于完整房间被恢复</h3>
+              <p>单张照片没有提供背面拓扑。模型能生成可漫游、看起来合理的补全，但三组真实 held-out 照片证明它并不能可靠恢复实际未见内容。</p>
+              <ul>
+                <li>输入视角：GPT-6 获得 9/9 盲评票</li>
+                <li>隐藏视角：GPT-6 获得 7/9 票，但 Scene A 为 1:2</li>
+                <li>结论应表述为“单视角条件下的程序化场景创作”</li>
+              </ul>
+            </div>
+            <button class="image-button sheet-button" data-lightbox="assets/image-task/hidden-completion.webp" data-caption="预测隐藏视角与真实 held-out 照片（未做相机配准）">
+              <img loading="lazy" src="assets/image-task/hidden-completion.webp" alt="预测隐藏视角与真实照片的对照表">
+            </button>
+          </article>
+          <details class="evidence-panel iteration-panel">
+            <summary>
+              <span><small>PROCESS EVIDENCE</small>查看五阶段迭代</span>
+              <span aria-hidden="true">＋</span>
+            </summary>
+            <button class="image-button sheet-button" data-lightbox="assets/image-task/iteration-sheet.webp" data-caption="GPT-6 从 blockout 到最终材质的迭代过程">
+              <img loading="lazy" src="assets/image-task/iteration-sheet.webp" alt="三个单图场景从 blockout 到最终结果的迭代表">
+            </button>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section id="task-text" class="task-section task-text">
+      <div class="section-shell">
+        <div class="section-heading split-heading">
+          <div>
+            <p class="eyebrow">TASK 02 · TEXT-TO-WORLD SYNTHESIS</p>
+            <h2>文本生成完整场景：<br>规模已可观，真实性停在 84–87 分</h2>
+          </div>
+          <p class="section-intro">
+            三个类型差异很大的 brief 使用同一套“构建 → 全判据集渲染 → 五路独立盲评 → 定位修正”循环。
+            输出包含完整 Blender 场景、多机位渲染与 room-tour，而不是单张概念图。
+          </p>
+        </div>
+
+        <div class="stat-grid four-stats text-stats" aria-label="文本生成结果摘要">
+          <div class="stat"><strong>3</strong><span>完整尺度场景<br>街区 / 后厨 / 住宅</span></div>
+          <div class="stat"><strong>83.7–86.9</strong><span>最终或最新总分<br>均未过 90 门槛</span></div>
+          <div class="stat"><strong>2.7–4.0 h</strong><span>每个场景 wall time<br>不含 tour 渲染</span></div>
+          <div class="stat"><strong>≥ $417</strong><span>三场景构建成本<br>Cedar 缺 LLM 计量</span></div>
+        </div>
+
+        <div class="loop-band" aria-label="文本生成完整场景的迭代流程">
+          <span class="loop-step"><b>01</b>构建 / 修改</span>
+          <i>→</i>
+          <span class="loop-step"><b>02</b>冻结相机渲染</span>
+          <i>→</i>
+          <span class="loop-step"><b>03</b>五路独立评审</span>
+          <i>→</i>
+          <span class="loop-step"><b>04</b>诊断并进入下一轮</span>
+        </div>
+
+        <section class="score-section" aria-labelledby="score-title">
+          <div class="score-copy">
+            <p class="eyebrow">ITERATIVE SCORE TRAJECTORY</p>
+            <h3 id="score-title">前五轮贡献大部分增益，之后快速进入平台期</h3>
+            <p>街景从 52.9 提升到 86.9，但第 7–10 轮只增加 1.4 分。后厨存在一次真实回归；住宅在第 3 轮后因作业取消停止，不能与两个完成场景等量比较。</p>
+            <div class="chart-legend" aria-label="图例">
+              <span><i class="legend-dot street-dot"></i>街景</span>
+              <span><i class="legend-dot kitchen-dot"></i>后厨</span>
+              <span><i class="legend-dot cedar-dot"></i>住宅 v3</span>
+              <span><i class="legend-line"></i>90 分退出门槛</span>
+            </div>
+          </div>
+          <div id="score-chart" class="score-chart" role="img" aria-label="三场景逐轮评分曲线。街景最终 86.9，后厨最终 85.5，住宅第三轮 83.7 后停止。"></div>
+        </section>
+
+        <article class="world-case street-case" id="street">
+          <div class="world-hero">
+            <button class="image-button" data-lightbox="assets/text-task/street/01_hero_morrow_street.webp" data-caption="Morrow Street · Hero view">
+              <img loading="lazy" src="assets/text-task/street/01_hero_morrow_street.webp" alt="雨后蓝调时刻的 Morrow Street">
+            </button>
+            <div class="world-label">
+              <span>01 / URBAN WORLD</span>
+              <h3>Morrow Street</h3>
+              <p>120 米英格兰北部混合街区 · 雨后蓝调时刻</p>
+            </div>
+            <div class="score-seal"><strong>86.9</strong><span>/ 100</span></div>
+          </div>
+          <div class="world-body">
+            <div class="world-description">
+              <p class="prompt-label">TEXT BRIEF · 摘要</p>
+              <blockquote>两排连续临街建筑，4–6 层、27 个商业租户；面包店、洗衣店、酒吧和空置店铺作为锚点。雨后路面、独立住宅入口、车辆、自行车、公交站及可进入的店内空间，共同形成一个无人物但有生活痕迹的街区。</blockquote>
+              <p class="result-note">空间延展、材质语言和灯光全部过门槛；最终卡在“使用痕迹”12.5/15：污渍、锈迹和接触老化仍显得图形化。</p>
+            </div>
+            <dl class="world-facts">
+              <div><dt>规模</dt><dd>120 m 主街</dd></div>
+              <div><dt>对象</dt><dd>808</dd></div>
+              <div><dt>判据相机</dt><dd>20</dd></div>
+              <div><dt>迭代</dt><dd>10 轮</dd></div>
+              <div><dt>Wall time</dt><dd>3.96 h</dd></div>
+              <div><dt>构建成本</dt><dd>$207.31</dd></div>
+            </dl>
+          </div>
+          <video class="tour-video" controls preload="metadata" playsinline poster="assets/text-task/street/02_reverse_evening.webp">
+            <source src="assets/videos/street-tour.mp4" type="video/mp4">
+            你的浏览器不支持 MP4 视频。
+          </video>
+          <div class="tour-meta"><span>ROOM TOUR · 70.0 秒 · 1920×1080 · 24 fps</span><span>视频来自 cycle 09；最终 cycle 10 仅有微小接触痕迹改动</span></div>
+          <div class="gallery" aria-label="Morrow Street 多视角画廊">
+            <button class="image-button" data-lightbox="assets/text-task/street/02_reverse_evening.webp" data-caption="反向夜景"><img loading="lazy" src="assets/text-task/street/02_reverse_evening.webp" alt="Morrow Street 反向夜景"></button>
+            <button class="image-button" data-lightbox="assets/text-task/street/03_elevated_establishing.webp" data-caption="高位全景"><img loading="lazy" src="assets/text-task/street/03_elevated_establishing.webp" alt="Morrow Street 高位全景"></button>
+            <button class="image-button" data-lightbox="assets/text-task/street/12_inside_bakery.webp" data-caption="面包店内部"><img loading="lazy" src="assets/text-task/street/12_inside_bakery.webp" alt="面包店内部"></button>
+            <button class="image-button" data-lightbox="assets/text-task/street/16_rear_service_lane.webp" data-caption="后勤巷道"><img loading="lazy" src="assets/text-task/street/16_rear_service_lane.webp" alt="后勤巷道"></button>
+            <button class="image-button" data-lightbox="assets/text-task/street/20_doorway_service_assembly.webp" data-caption="门口排水与五金细节"><img loading="lazy" src="assets/text-task/street/20_doorway_service_assembly.webp" alt="门口排水与五金细节"></button>
+          </div>
+        </article>
+
+        <article class="world-case kitchen-case" id="kitchen">
+          <div class="world-hero">
+            <button class="image-button" data-lightbox="assets/text-task/kitchen/01_hero_hot_line.webp" data-caption="Working Kitchen · Hero view">
+              <img loading="lazy" src="assets/text-task/kitchen/01_hero_hot_line.webp" alt="正在营业时段的专业后厨">
+            </button>
+            <div class="world-label">
+              <span>02 / FUNCTIONAL INTERIOR</span>
+              <h3>Working Kitchen</h3>
+              <p>60 座餐厅后厨 · 周五 20:30 服务中</p>
+            </div>
+            <div class="score-seal"><strong>85.5</strong><span>/ 100</span></div>
+          </div>
+          <div class="world-body">
+            <div class="world-description">
+              <p class="prompt-label">TEXT BRIEF · 摘要</p>
+              <blockquote>在 53.04 m² 内布置完整热厨线、plancha、salamander、组合烤箱、冷菜间、备餐岛、传菜口、洗锅和干货存储。场景处于服务中途，不出现人物，但需要通过食材、票据、用过的工具和清洗状态表达占用。</blockquote>
+              <p class="result-note">材质、功能逻辑、灯光与几何通过门槛；“占用感”16.5/20 和“磨损/油污”8.2/10 未过，摆放仍然过于受控。</p>
+            </div>
+            <dl class="world-facts">
+              <div><dt>规模</dt><dd>53.04 m²</dd></div>
+              <div><dt>对象</dt><dd>3,285</dd></div>
+              <div><dt>判据相机</dt><dd>16</dd></div>
+              <div><dt>迭代</dt><dd>8 轮</dd></div>
+              <div><dt>Wall time</dt><dd>3.75 h</dd></div>
+              <div><dt>构建成本</dt><dd>$146.11</dd></div>
+            </dl>
+          </div>
+          <video class="tour-video" controls preload="metadata" playsinline poster="assets/text-task/kitchen/02_reverse_service.webp">
+            <source src="assets/videos/kitchen-tour.mp4" type="video/mp4">
+            你的浏览器不支持 MP4 视频。
+          </video>
+          <div class="tour-meta"><span>ROOM TOUR · 34.8 秒 · 1920×1080 · 24 fps</span><span>来自 cycle 08 最终场景</span></div>
+          <div class="gallery" aria-label="Working Kitchen 多视角画廊">
+            <button class="image-button" data-lightbox="assets/text-task/kitchen/02_reverse_service.webp" data-caption="反向服务视角"><img loading="lazy" src="assets/text-task/kitchen/02_reverse_service.webp" alt="后厨反向服务视角"></button>
+            <button class="image-button" data-lightbox="assets/text-task/kitchen/03_pass.webp" data-caption="传菜口"><img loading="lazy" src="assets/text-task/kitchen/03_pass.webp" alt="后厨传菜口"></button>
+            <button class="image-button" data-lightbox="assets/text-task/kitchen/04_larder.webp" data-caption="冷菜间"><img loading="lazy" src="assets/text-task/kitchen/04_larder.webp" alt="后厨冷菜间"></button>
+            <button class="image-button" data-lightbox="assets/text-task/kitchen/08_working_bench.webp" data-caption="工作台细节"><img loading="lazy" src="assets/text-task/kitchen/08_working_bench.webp" alt="后厨工作台细节"></button>
+            <button class="image-button" data-lightbox="assets/text-task/kitchen/16_handwash_detail.webp" data-caption="洗手区细节"><img loading="lazy" src="assets/text-task/kitchen/16_handwash_detail.webp" alt="后厨洗手区细节"></button>
+          </div>
+        </article>
+
+        <article class="world-case cedar-case" id="cedar">
+          <div class="world-hero">
+            <button class="image-button" data-lightbox="assets/text-task/cedar/03_exterior_aerial.webp" data-caption="Cedar Court v3 · Exterior aerial">
+              <img loading="lazy" src="assets/text-task/cedar/03_exterior_aerial.webp" alt="Cedar Court U 形合院住宅鸟瞰图">
+            </button>
+            <div class="world-label">
+              <span>03 / ARCHITECTURAL PROGRAM</span>
+              <h3>Cedar Court v3</h3>
+              <p>302 m² 单层 U 形合院住宅 · 庭院与泳池</p>
+            </div>
+            <div class="score-seal incomplete"><strong>83.7</strong><span>cycle 03</span></div>
+          </div>
+          <div class="world-body">
+            <div class="world-description">
+              <p class="prompt-label">TEXT BRIEF · 摘要</p>
+              <blockquote>围绕中央种植庭院组织 302 m² 单层住宅：北翼为客餐厨，西翼为办公室、共用浴室与两间卧室，东翼为服务空间和主卧套房；南侧设置 12×3 m 泳池、露台和分层景观。</blockquote>
+              <p class="result-note">三轮从 69.8 提升至 83.7；第 4 轮未启动，缺少最终维度评分、GLB 门禁和冷启动验收，因此是最新工作状态，不是完成结果。</p>
+            </div>
+            <dl class="world-facts">
+              <div><dt>规模</dt><dd>302 m²</dd></div>
+              <div><dt>庭院</dt><dd>138 m²</dd></div>
+              <div><dt>判据相机</dt><dd>16–18</dd></div>
+              <div><dt>迭代</dt><dd>3 轮</dd></div>
+              <div><dt>Wall time</dt><dd>2.66 h</dd></div>
+              <div><dt>已计成本</dt><dd>≥ $63.73</dd></div>
+            </dl>
+          </div>
+          <video class="tour-video" controls preload="metadata" playsinline poster="assets/text-task/cedar/04_living_dining_kitchen.webp">
+            <source src="assets/videos/cedar-tour.mp4" type="video/mp4">
+            你的浏览器不支持 MP4 视频。
+          </video>
+          <div class="tour-meta"><span>ROOM TOUR · 45.0 秒 · 1920×1080 · 24 fps</span><span>来自最新 cycle 03；场景尚未完成最终验收</span></div>
+          <div class="gallery" aria-label="Cedar Court 多视角画廊">
+            <button class="image-button" data-lightbox="assets/text-task/cedar/00_floor_plan.webp" data-caption="平面图"><img loading="lazy" src="assets/text-task/cedar/00_floor_plan.webp" alt="Cedar Court 平面图"></button>
+            <button class="image-button" data-lightbox="assets/text-task/cedar/01_overhead_cutaway.webp" data-caption="剖切鸟瞰"><img loading="lazy" src="assets/text-task/cedar/01_overhead_cutaway.webp" alt="Cedar Court 剖切鸟瞰"></button>
+            <button class="image-button" data-lightbox="assets/text-task/cedar/04_living_dining_kitchen.webp" data-caption="客餐厨空间"><img loading="lazy" src="assets/text-task/cedar/04_living_dining_kitchen.webp" alt="Cedar Court 客餐厨空间"></button>
+            <button class="image-button" data-lightbox="assets/text-task/cedar/05_central_courtyard.webp" data-caption="中央庭院"><img loading="lazy" src="assets/text-task/cedar/05_central_courtyard.webp" alt="Cedar Court 中央庭院"></button>
+            <button class="image-button" data-lightbox="assets/text-task/cedar/15_pool_south_garden.webp" data-caption="泳池与南侧花园"><img loading="lazy" src="assets/text-task/cedar/15_pool_south_garden.webp" alt="Cedar Court 泳池与南侧花园"></button>
+          </div>
+        </article>
+
+        <section class="cost-section" aria-labelledby="cost-title">
+          <div class="cost-heading">
+            <p class="eyebrow">COST &amp; DIMINISHING RETURNS</p>
+            <h3 id="cost-title">生成本身约 $417 起，tour 另花约 $145</h3>
+            <p>构建成本不含三段视频。Cedar 只记录了 GPU 成本，故总额是下界；街景与后厨的 GPU 和 LLM 成本处于同一量级。</p>
+          </div>
+          <div class="cost-bars">
+            <div class="cost-row">
+              <div><strong>街景</strong><span>$207.31</span></div>
+              <div class="stacked-bar" aria-label="街景成本：LLM 112.24 美元，GPU 95.07 美元">
+                <span class="llm" style="width:54.1%">LLM $112</span><span class="gpu" style="width:45.9%">GPU $95</span>
+              </div>
+            </div>
+            <div class="cost-row">
+              <div><strong>后厨</strong><span>$146.11</span></div>
+              <div class="stacked-bar kitchen-cost" aria-label="后厨成本：LLM 56.21 美元，GPU 89.91 美元">
+                <span class="llm" style="width:38.5%">LLM $56</span><span class="gpu" style="width:61.5%">GPU $90</span>
+              </div>
+            </div>
+            <div class="cost-row">
+              <div><strong>住宅 v3</strong><span>≥ $63.73</span></div>
+              <div class="stacked-bar cedar-cost" aria-label="住宅已知 GPU 成本 63.73 美元，LLM 成本未计量">
+                <span class="gpu" style="width:44%">GPU $64</span><span class="unknown" style="width:56%">LLM 未计量</span>
+              </div>
+            </div>
+          </div>
+          <p class="cost-footnote">计价假设：输入 $3/M、缓存输入 $0.3/M、输出 $15/M、GPU $3/GPU-h。视频额外消耗 48.3 GPU-h，约 $145。</p>
+        </section>
+      </div>
+    </section>
+
+    <section id="takeaways" class="takeaways section-shell">
+      <div class="section-heading compact">
+        <p class="eyebrow">WHAT THIS EXPERIMENT ACTUALLY SHOWS</p>
+        <h2>结论：系统已经会“搭世界”，但还不会从单图“知道世界”</h2>
+      </div>
+      <div class="takeaway-grid">
+        <article>
+          <span>01</span>
+          <h3>复原能力集中在可见区域</h3>
+          <p>GPT-6 在三张输入图上稳定优于 GPT-5.6，几何、物体身份和材质都更接近；但未见区域没有足够证据，不能宣称真实 360° 重建。</p>
+        </article>
+        <article>
+          <span>02</span>
+          <h3>文本可以驱动大尺度可编辑场景</h3>
+          <p>从 53 m² 后厨到 120 m 街区，agent 能生成结构化 Blender 场景、多机位和 tour，已经超出单物体 3D generation 的范围。</p>
+        </article>
+        <article>
+          <span>03</span>
+          <h3>真实性瓶颈是可信的不规则性</h3>
+          <p>街景卡在使用痕迹，后厨卡在占用感和磨损。继续增加几何不等于真实；接触老化、杂乱因果和材质变化仍是主要短板。</p>
+        </article>
+        <article>
+          <span>04</span>
+          <h3>评测应分轨，而不是合并总榜</h3>
+          <p>单图任务需要注册视角和结构指标；文本任务需要覆盖度、功能、可编辑性与成本。二者共享 harness，但目标函数不同。</p>
+        </article>
+      </div>
+      <div class="detail-links">
+        <a class="button" href="details/image-reconstruction-report.md">单图实验完整报告</a>
+        <a class="button" href="details/text-scene-score-report.html">文本场景交互评分报告</a>
+        <a class="button" href="details/text-scene-report.md">三场景完整说明</a>
+      </div>
+    </section>
+
+    <section class="sources section-shell" aria-labelledby="sources-title">
+      <p class="eyebrow">EVALUATION IMAGE SOURCES</p>
+      <h2 id="sources-title">输入图像与 held-out 视图来源</h2>
+      <p>单图复原实验使用公开研究数据集中的帧；图像权利与引用归各数据集作者。生成渲染、评测文字与网页编排属于本实验输出。</p>
+      <div class="source-links">
+        <a href="https://jonbarron.info/mipnerf360/" rel="noreferrer">Mip-NeRF 360 · room ↗</a>
+        <a href="https://www-sop.inria.fr/reves/publis/2018/HPPFDB18/datasets.html" rel="noreferrer">Deep Blending · playroom ↗</a>
+        <a href="https://github.com/facebookresearch/EyefulTower" rel="noreferrer">EyefulTower · apartment ↗</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div><strong>Agentic 3D Scene Generation</strong><span>Results assembled from independent renders and frozen evaluation records.</span></div>
+    <a href="#top">BACK TO TOP ↑</a>
+  </footer>
+
+  <dialog id="lightbox" class="lightbox">
+    <button class="lightbox-close" aria-label="关闭大图">×</button>
+    <img src="" alt="">
+    <p></p>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>

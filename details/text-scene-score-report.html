@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>三场景 3D 生成基准 — 评分与迭代</title>
+<style>
+  .viz-root {
+    color-scheme: light;
+    --surface-1: #fcfcfb;
+    --page: #f9f9f7;
+    --text-primary: #0b0b0b;
+    --text-secondary: #52514e;
+    --muted: #898781;
+    --grid: #e1e0d9;
+    --axis: #c3c2b7;
+    --border: rgba(11,11,11,0.10);
+    --series-1: #2a78d6;
+    --series-2: #eb6834;
+    --series-3: #1baf7a;
+    --critical: #d03b3b;
+    --good: #0ca30c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) .viz-root {
+      color-scheme: dark;
+      --surface-1: #1a1a19;
+      --page: #0d0d0d;
+      --text-primary: #ffffff;
+      --text-secondary: #c3c2b7;
+      --muted: #898781;
+      --grid: #2c2c2a;
+      --axis: #383835;
+      --border: rgba(255,255,255,0.10);
+      --series-1: #3987e5;
+      --series-2: #d95926;
+      --series-3: #199e70;
+    }
+  }
+  :root[data-theme="dark"] .viz-root {
+    color-scheme: dark;
+    --surface-1: #1a1a19;
+    --page: #0d0d0d;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --muted: #898781;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --border: rgba(255,255,255,0.10);
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  .viz-root {
+    background: var(--page);
+    color: var(--text-primary);
+    font: 14px/1.6 system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    padding: 32px 24px 64px;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  h1 { font-size: 24px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  h2 { font-size: 17px; margin: 40px 0 4px; letter-spacing: -0.005em; }
+  .sub { color: var(--text-secondary); margin: 0 0 24px; font-size: 13px; }
+  .card {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 20px 12px;
+    margin-top: 14px;
+  }
+  .bar-row { display: flex; align-items: center; gap: 10px; }
+  .toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 14px; flex-wrap: wrap; }
+  button {
+    font: inherit; font-size: 13px;
+    color: var(--text-secondary);
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 7px; padding: 5px 12px; cursor: pointer;
+  }
+  button[aria-pressed="true"] { color: var(--text-primary); border-color: var(--axis); font-weight: 600; }
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; margin: 0 0 6px 8px; }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; color: var(--text-secondary); font-size: 13px; }
+  .swatch { width: 11px; height: 11px; border-radius: 3px; flex: none; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+  th, td { text-align: right; padding: 7px 10px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; white-space: normal; }
+  thead th { color: var(--text-secondary); font-weight: 600; border-bottom: 1px solid var(--axis); }
+  tbody tr:last-child td { border-bottom: none; }
+  .hide { display: none; }
+  .tag { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 5px; letter-spacing: .02em; }
+  .tag.fail { color: #fff; background: var(--critical); }
+  .tag.pass { color: var(--text-secondary); border: 1px solid var(--axis); }
+  .note { color: var(--text-secondary); font-size: 12.5px; margin: 10px 2px 0; }
+  svg { display: block; width: 100%; height: auto; }
+  .tip {
+    position: fixed; pointer-events: none; opacity: 0; transition: opacity .1s;
+    background: var(--surface-1); border: 1px solid var(--axis); border-radius: 8px;
+    padding: 9px 11px; font-size: 12.5px; box-shadow: 0 4px 16px rgba(0,0,0,.16);
+    font-variant-numeric: tabular-nums; z-index: 9; min-width: 150px;
+  }
+  .tip b { display: block; margin-bottom: 5px; font-size: 12px; color: var(--text-secondary); font-weight: 600; }
+  .tip .r { display: flex; align-items: center; gap: 7px; margin-top: 3px; }
+  .tip .r i { margin-left: auto; font-style: normal; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="viz-root">
+<div class="wrap">
+
+  <h1>三场景 3D 生成基准</h1>
+  <p class="sub">多轮 build → render → 五路独立评审 → 修正循环 · 数据截至 2026-09-10 · 90 分退出门槛三个场景均未达到</p>
+
+  <div class="toolbar">
+    <button id="btn-chart" aria-pressed="true">图表</button>
+    <button id="btn-table" aria-pressed="false">表格</button>
+    <button id="btn-theme">切换深/浅色</button>
+  </div>
+
+  <h2>评分轨迹</h2>
+  <p class="sub" style="margin-bottom:0">每轮 = 一次完整的构建、全判据集渲染、五路独立评审与综合打分。评审员互相盲评，打分不强制单调。</p>
+
+  <div class="card" id="chart-card">
+    <div class="legend" id="legend"></div>
+    <svg id="chart" viewBox="0 0 900 440" role="img" aria-label="三场景每轮总分折线图"></svg>
+    <p class="note" id="chart-note"></p>
+  </div>
+
+  <div class="card hide" id="table-card">
+    <table>
+      <thead><tr><th>轮次</th><th>街景 Morrow Street</th><th>后厨 Kitchen</th><th>住宅 Cedar Court v3</th></tr></thead>
+      <tbody id="tbody-cycles"></tbody>
+    </table>
+    <p class="note">— 表示该场景未进行到此轮。</p>
+  </div>
+
+  <h2>最终维度得分</h2>
+  <p class="sub" style="margin-bottom:0">每个维度有独立的准入门槛。两个场景各有维度未过门槛，因此总分即便接近 87 仍判定为未通过。</p>
+  <div class="card">
+    <table>
+      <thead><tr><th>场景 / 维度</th><th>得分</th><th>满分</th><th>门槛</th><th>结果</th></tr></thead>
+      <tbody id="tbody-dims"></tbody>
+    </table>
+  </div>
+
+  <h2>成本与算力</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>场景</th><th>最终分</th><th>轮次</th><th>墙钟 (h)</th><th>GPU-h</th><th>agent 数</th><th>输入 token</th><th>缓存命中</th><th>输出 token</th><th>成本 (USD)</th></tr></thead>
+      <tbody id="tbody-cost"></tbody>
+    </table>
+    <p class="note">计价假设：输入 $3/M、缓存输入 $0.3/M、输出 $15/M、GPU $3/GPU-h。住宅 v3 无 token 计量记录，仅列 GPU 部分（作业 13288542 在 2:39:20 时被 CANCELLED，第 4 轮从未开始）。上表不含 tour 渲染，见下。</p>
+  </div>
+
+  <h2>Tour 视频</h2>
+  <p class="sub" style="margin-bottom:0">三段均为 1920×1080 @ 24fps、H.264、OptiX + OIDN 192 采样。帧数 ÷ 24 与时长自洽，无缺帧。</p>
+  <div class="card">
+    <table>
+      <thead><tr><th>场景</th><th>时长</th><th>帧数</th><th>大小</th><th>算力</th><th>每帧 (s)</th><th>渲染耗时</th><th>GPU-h</th><th>源场景</th></tr></thead>
+      <tbody id="tbody-tour"></tbody>
+    </table>
+    <p class="note">街景 tour 渲染自 cycle 09，比最终场景早一轮；住宅 tour 渲染自 cycle 03 —— 那是该场景最后的状态，第 4 轮从未开始。住宅每帧比街景快约 4 倍，但两者卡数不同（8 卡 vs 4 卡），不是同一算力基线。</p>
+  </div>
+
+</div>
+</div>
+
+<div class="tip" id="tip"></div>
+
+<script>
+const CYCLES = {
+  street:  [52.9, 67.6, 74.4, 82.4, 83.4, 85.5, 84.2, 84.9, 86.8, 86.9],
+  kitchen: [60.1, 58.0, 79.7, 81.2, 81.9, 82.2, 85.1, 85.5],
+  cedar:   [69.8, 82.2, 83.7]
+};
+// lab: direct-label placement, hand-checked against the other series' paths so
+// no label sits on a line. kitchen ends mid-plot under the street line, so it
+// labels upward; the other two have clear space to their right.
+const SERIES = [
+  { key: 'street',  label: '街景 Morrow Street',  short: '街景', color: 'var(--series-1)', lab: { dx: 12, dy: 4,   anchor: 'start'  } },
+  { key: 'kitchen', label: '后厨 Kitchen',        short: '后厨', color: 'var(--series-2)', lab: { dx: 0,  dy: -14, anchor: 'middle' } },
+  { key: 'cedar',   label: '住宅 Cedar Court v3', short: '住宅', color: 'var(--series-3)', lab: { dx: 12, dy: 4,   anchor: 'start'  } }
+];
+const DIMS = [
+  ['街景', 'Urban plausibility 城市合理性', 13.2, 15, 13, 1],
+  ['街景', 'Material & architectural language 材质与建筑语言', 17.0, 20, 17, 1],
+  ['街景', 'Marks of use 使用痕迹', 12.5, 15, 13, 0],
+  ['街景', 'Lighting & atmosphere 光照与氛围', 13.5, 15, 13, 1],
+  ['街景', 'Geometry & hardware 几何与五金', 8.8, 10, 8.5, 1],
+  ['街景', 'Depth beyond the set 景深延展', 8.8, 10, 8.5, 1],
+  ['街景', 'Composition 构图', 8.6, 10, 8.5, 1],
+  ['街景', 'Technical quality & portability 技术与可移植性', 4.5, 5, 4, 1],
+  ['后厨', 'Density, disorder & occupancy 密度与占用感', 16.5, 20, 17, 0],
+  ['后厨', 'Material language 材质语言', 17.4, 20, 17, 1],
+  ['后厨', 'Lighting & atmosphere 光照与氛围', 13.2, 15, 13, 1],
+  ['后厨', 'Functional plausibility 功能合理性', 13.0, 15, 13, 1],
+  ['后厨', 'Geometry & hardware 几何与五金', 8.6, 10, 8.5, 1],
+  ['后厨', 'Wear, heat & grease 磨损、热与油污', 8.2, 10, 8.5, 0],
+  ['后厨', 'Composition 构图', 4.1, 5, 4, 1],
+  ['后厨', 'Technical quality & portability 技术与可移植性', 4.5, 5, 4, 1]
+];
+const COST = [
+  ['街景 Morrow Street', '86.9', '10', '3.96', '31.69', '69', '249.1M', '96.4%', '892K', '$207.31'],
+  ['后厨 Kitchen', '85.5', '8', '3.75', '29.97', '48', '125.4M', '97.1%', '579K', '$146.11'],
+  ['住宅 Cedar Court v3', '83.7', '3', '2.66', '21.24', '—', '—', '—', '—', '$63.73 (仅 GPU)']
+];
+
+// ---------- chart ----------
+const W = 900, H = 440, M = { t: 18, r: 132, b: 46, l: 52 };
+const PW = W - M.l - M.r, PH = H - M.t - M.b;
+const X_MAX = 10, Y_MIN = 50, Y_MAX = 95;
+const sx = c => M.l + (c - 1) / (X_MAX - 1) * PW;
+const sy = v => M.t + (Y_MAX - v) / (Y_MAX - Y_MIN) * PH;
+const svgNS = 'http://www.w3.org/2000/svg';
+const el = (n, a) => { const e = document.createElementNS(svgNS, n); for (const k in a) e.setAttribute(k, a[k]); return e; };
+
+const svg = document.getElementById('chart');
+// gridlines + y axis
+for (let v = Y_MIN; v <= Y_MAX; v += 5) {
+  svg.appendChild(el('line', { x1: M.l, x2: M.l + PW, y1: sy(v), y2: sy(v), stroke: 'var(--grid)', 'stroke-width': 1 }));
+  const t = el('text', { x: M.l - 10, y: sy(v) + 4, 'text-anchor': 'end', fill: 'var(--muted)', 'font-size': 11.5 });
+  t.textContent = v; svg.appendChild(t);
+}
+// 90-point gate
+svg.appendChild(el('line', { x1: M.l, x2: M.l + PW, y1: sy(90), y2: sy(90), stroke: 'var(--critical)', 'stroke-width': 2, 'stroke-dasharray': '6 5', opacity: .85 }));
+// label sits above the line at the left — the right margin is reserved for series labels
+const gl = el('text', { x: M.l + 8, y: sy(90) - 8, fill: 'var(--critical)', 'font-size': 12, 'font-weight': 700 });
+gl.textContent = '90 分退出门槛'; svg.appendChild(gl);
+// x axis
+svg.appendChild(el('line', { x1: M.l, x2: M.l + PW, y1: M.t + PH, y2: M.t + PH, stroke: 'var(--axis)', 'stroke-width': 1 }));
+for (let c = 1; c <= X_MAX; c++) {
+  const t = el('text', { x: sx(c), y: M.t + PH + 20, 'text-anchor': 'middle', fill: 'var(--muted)', 'font-size': 11.5 });
+  t.textContent = c; svg.appendChild(t);
+}
+const xl = el('text', { x: M.l + PW / 2, y: M.t + PH + 40, 'text-anchor': 'middle', fill: 'var(--text-secondary)', 'font-size': 12 });
+xl.textContent = '评审轮次'; svg.appendChild(xl);
+
+// series
+SERIES.forEach(s => {
+  const d = CYCLES[s.key];
+  const path = d.map((v, i) => `${i ? 'L' : 'M'}${sx(i + 1).toFixed(1)},${sy(v).toFixed(1)}`).join(' ');
+  svg.appendChild(el('path', { d: path, fill: 'none', stroke: s.color, 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
+  d.forEach((v, i) => {
+    svg.appendChild(el('circle', { cx: sx(i + 1), cy: sy(v), r: 4.5, fill: s.color, stroke: 'var(--surface-1)', 'stroke-width': 2 }));
+  });
+  // single-line direct label at the line end (stacked labels collided with neighbouring paths)
+  const last = d.length, ly = sy(d[last - 1]);
+  const lab = el('text', {
+    x: sx(last) + s.lab.dx, y: ly + s.lab.dy, 'text-anchor': s.lab.anchor,
+    fill: s.color, 'font-size': 12.5, 'font-weight': 700
+  });
+  lab.textContent = `${s.short} ${d[last - 1].toFixed(1)}`; svg.appendChild(lab);
+});
+
+// crosshair + hover
+const cross = el('line', { y1: M.t, y2: M.t + PH, stroke: 'var(--axis)', 'stroke-width': 1, opacity: 0 });
+svg.appendChild(cross);
+const tip = document.getElementById('tip');
+svg.addEventListener('pointermove', ev => {
+  const r = svg.getBoundingClientRect();
+  const px = (ev.clientX - r.left) / r.width * W;
+  let c = Math.round((px - M.l) / PW * (X_MAX - 1) + 1);
+  c = Math.max(1, Math.min(X_MAX, c));
+  cross.setAttribute('x1', sx(c)); cross.setAttribute('x2', sx(c)); cross.setAttribute('opacity', 1);
+  let html = `<b>第 ${c} 轮</b>`;
+  SERIES.forEach(s => {
+    const v = CYCLES[s.key][c - 1];
+    if (v === undefined) return;
+    html += `<div class="r"><span class="swatch" style="background:${s.color}"></span>${s.label}<i>${v.toFixed(1)}</i></div>`;
+  });
+  tip.innerHTML = html; tip.style.opacity = 1;
+  tip.style.left = Math.min(ev.clientX + 16, innerWidth - tip.offsetWidth - 12) + 'px';
+  tip.style.top = (ev.clientY - 12) + 'px';
+});
+svg.addEventListener('pointerleave', () => { tip.style.opacity = 0; cross.setAttribute('opacity', 0); });
+
+document.getElementById('chart-note').textContent =
+  '街景第 7 轮由一组新评审员打分，材质/痕迹/构图均低于第 6 轮 —— 这是独立主观判断，分数不被强制单调。后厨第 2 轮的下跌源于一个真实缺陷：过期的变换把三滴酱汁放大到 2 米并遮挡视野。';
+
+// legend
+document.getElementById('legend').innerHTML = SERIES.map(s =>
+  `<span><span class="swatch" style="background:${s.color}"></span>${s.label}</span>`).join('');
+
+// ---------- tables ----------
+document.getElementById('tbody-cycles').innerHTML = Array.from({ length: 10 }, (_, i) => {
+  const f = k => CYCLES[k][i] === undefined ? '—' : CYCLES[k][i].toFixed(1);
+  return `<tr><td>第 ${i + 1} 轮</td><td>${f('street')}</td><td>${f('kitchen')}</td><td>${f('cedar')}</td></tr>`;
+}).join('');
+
+document.getElementById('tbody-dims').innerHTML = DIMS.map(([sc, name, v, max, gate, pass]) =>
+  `<tr><td><span style="color:var(--text-secondary)">${sc}</span> · ${name}</td><td><b>${v}</b></td><td>${max}</td><td>${gate}</td>` +
+  `<td><span class="tag ${pass ? 'pass' : 'fail'}">${pass ? 'PASS' : '未过门槛'}</span></td></tr>`).join('');
+
+document.getElementById('tbody-cost').innerHTML = COST.map(r =>
+  `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('');
+
+const TOUR = [
+  ['街景 Morrow Street', '70.0 s', '1681', '88.3 MB', '3 × 4×A100', '14.1 / 16.8 / 17.9', '2 h 45 m', '30.4', 'cycle 09 (86.8)'],
+  ['后厨 Kitchen', '34.8 s', '836', '41.2 MB', '2 × 4×A100', '9.4 / 9.6', '1 h 07 m', '8.9', 'cycle 08 最终 (85.5)'],
+  ['住宅 Cedar Court v3', '45.0 s', '1081', '80.3 MB', '3 × 8×A100', '3.90 / 4.15 / 3.19', '1 h 08 m', '9.0', 'cycle 03 (83.7)']
+];
+document.getElementById('tbody-tour').innerHTML = TOUR.map(r =>
+  `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('');
+
+// ---------- toolbar ----------
+const bc = document.getElementById('btn-chart'), bt = document.getElementById('btn-table');
+const cc = document.getElementById('chart-card'), tc = document.getElementById('table-card');
+bc.onclick = () => { cc.classList.remove('hide'); tc.classList.add('hide'); bc.setAttribute('aria-pressed', 'true'); bt.setAttribute('aria-pressed', 'false'); };
+bt.onclick = () => { tc.classList.remove('hide'); cc.classList.add('hide'); bt.setAttribute('aria-pressed', 'true'); bc.setAttribute('aria-pressed', 'false'); };
+document.getElementById('btn-theme').onclick = () => {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const dark = cur ? cur === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.setAttribute('data-theme', dark ? 'light' : 'dark');
+};
+</script>
+</body>
+</html>
