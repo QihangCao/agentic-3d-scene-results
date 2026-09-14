@@ -420,6 +420,8 @@ footer div { display: flex; flex-direction: column; }
 footer strong { font-weight: 500; }
 footer span { color: var(--muted); font-family: var(--mono); font-size: 10px; }
 footer a { color: var(--muted); font-family: var(--mono); font-size: 10px; letter-spacing: .1em; text-decoration: none; }
+.footer-links { flex-direction: row; gap: 24px; }
+.footer-links a:hover { color: var(--text); }
 
 .lightbox {
   width: min(94vw, 1600px);

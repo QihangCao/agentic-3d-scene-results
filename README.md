@@ -1,5 +1,7 @@
 # Agentic 3D Scene Generation — result showcase
 
+**Live site:** https://qihangcao.github.io/agentic-3d-scene-results/
+
 静态、离线可打开的结果页，汇总两项任务：
 
 1. 单张真实照片生成可编辑 Blender 场景，并与 GPT-5.6 baseline 做冻结协议比较。
