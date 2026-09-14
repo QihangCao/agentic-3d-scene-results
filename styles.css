@@ -328,6 +328,7 @@ h3 {
 .score-section { display: grid; grid-template-columns: .78fr 1.22fr; gap: 70px; align-items: center; padding: 52px 0 90px; border-top: 1px solid var(--line); }
 .score-copy h3 { margin-bottom: 20px; font-size: 32px; }
 .score-copy > p:not(.eyebrow) { color: var(--muted); }
+.score-copy .chart-note { margin-top: 18px; color: var(--muted); font-family: var(--mono); font-size: 10px; line-height: 1.65; }
 .chart-legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 28px; color: var(--muted); font-family: var(--mono); font-size: 10px; }
 .chart-legend span { display: flex; align-items: center; gap: 7px; }
 .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
@@ -343,7 +344,7 @@ h3 {
 .score-chart .series-line { fill: none; stroke-width: 3; vector-effect: non-scaling-stroke; }
 .score-chart .series-street { stroke: var(--blue); }
 .score-chart .series-kitchen { stroke: var(--orange); }
-.score-chart .series-cedar { stroke: var(--purple); }
+.score-chart .series-cedar { stroke: var(--purple); stroke-dasharray: 7 5; }
 .score-chart circle { vector-effect: non-scaling-stroke; stroke: var(--bg); stroke-width: 2; }
 .score-chart .point-street { fill: var(--blue); }
 .score-chart .point-kitchen { fill: var(--orange); }

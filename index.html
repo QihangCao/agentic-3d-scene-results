@@ -272,16 +272,17 @@
         <section class="score-section" aria-labelledby="score-title">
           <div class="score-copy">
             <p class="eyebrow">ITERATIVE SCORE TRAJECTORY</p>
-            <h3 id="score-title">前五轮贡献大部分增益，之后快速进入平台期</h3>
-            <p>街景从 52.9 提升到 86.9，但第 7–10 轮只增加 1.4 分。后厨存在一次真实回归；住宅在第 3 轮后因作业取消停止，不能与两个完成场景等量比较。</p>
+            <h3 id="score-title">约两小时拿到主要增益，之后快速进入平台期</h3>
+            <p>横轴改为累计 wall time，每个圆点仍是一轮完整评审。街景约 2.1 小时达到 85.5，随后再投入约 1.8 小时只提升 1.4 分；后厨在早期出现一次真实回归。</p>
             <div class="chart-legend" aria-label="图例">
               <span><i class="legend-dot street-dot"></i>街景</span>
               <span><i class="legend-dot kitchen-dot"></i>后厨</span>
-              <span><i class="legend-dot cedar-dot"></i>住宅 v3</span>
+              <span><i class="legend-dot cedar-dot"></i>住宅 v3 · 时间估算</span>
               <span><i class="legend-line"></i>90 分退出门槛</span>
             </div>
+            <p class="chart-note">街景 / 后厨位置来自逐轮 review completion timestamps；街景 C1 是恢复 allocation 时已有的 baseline。住宅 v3 未保留逐轮时间戳，虚线依据阶段日志与 2.66 h 总时长估算。</p>
           </div>
-          <div id="score-chart" class="score-chart" role="img" aria-label="三场景逐轮评分曲线。街景最终 86.9，后厨最终 85.5，住宅第三轮 83.7 后停止。"></div>
+          <div id="score-chart" class="score-chart" role="img" aria-label="三场景评分随累计 wall time 变化的曲线。每个点代表一个评审周期；街景最终 86.9，后厨最终 85.5，住宅第三轮 83.7 后停止。"></div>
         </section>
 
         <article class="world-case street-case" id="street">
