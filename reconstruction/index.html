@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Three video-to-3D reconstruction scenes: reference video, Codex and SoL-Pi, playing together in a 30-second comparison.">
+  <title>Reconstruction · Codex × SoL-Pi</title>
+  <style>
+    :root{color-scheme:dark;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0b1017;color:#eef3fa}
+    *{box-sizing:border-box}body{margin:0}main{max-width:1660px;margin:auto;padding:32px 28px 24px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:22px}
+    h1{font-size:clamp(20px,2.6vw,30px);font-weight:550;letter-spacing:-.6px;margin:0}
+    .subtitle{font-size:13px;color:#a4b1c2;margin:7px 0 0}.download{flex-shrink:0;display:inline-block;padding:10px 15px;border:1px solid #34445b;border-radius:9px;color:#dbeaff;text-decoration:none;font-size:13px}
+    .download:hover{background:#1c2b40}a:focus-visible{outline:2px solid #9ec5ff;outline-offset:4px}
+    .screen{overflow:hidden;border:1px solid #283449;border-radius:12px;background:#070a0f;box-shadow:0 20px 70px #0005}
+    video{display:block;width:100%;aspect-ratio:16/9;background:#070a0f}
+    footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:16px;font-size:12px;line-height:1.7;color:#93a3b8}footer a{color:#b3cced;text-decoration:none}
+    @media(max-width:640px){main{padding:20px 12px}header{align-items:flex-start;gap:12px}.download{padding:8px 10px}.screen{border-radius:7px}}
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div><h1>Reconstruction · Codex × SoL-Pi</h1><p class="subtitle">Kitchen · Living room · Classroom</p></div>
+      <a class="download" href="comparison.mp4" download="reconstruction-codex-solpi.mp4">Download MP4</a>
+    </header>
+    <div class="screen">
+      <video controls playsinline preload="metadata" poster="poster.jpg" aria-label="Nine-panel reconstruction comparison: reference, Codex and SoL-Pi for kitchen, living room and classroom">
+        <source src="comparison.mp4" type="video/mp4">
+        Your browser does not support this video. <a href="comparison.mp4">Download it here.</a>
+      </video>
+    </div>
+    <footer>
+      <span>Reference at original speed · Reconstructions at 2.13× · 30 seconds · 2880 × 1620</span>
+      <span>Reference clips: <a href="https://yoloytang.me/BVB/">BVB</a> · <a href="../">More results</a></span>
+      <span>Spatial construction visualization; not the model’s edit chronology. Camera paths are not frame-aligned.</span>
+    </footer>
+  </main>
+</body>
+</html>
